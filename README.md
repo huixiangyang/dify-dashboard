@@ -78,6 +78,24 @@ pnpm dev
 
 访问 http://localhost:3000 查看应用。
 
+
+## 界面预览
+
+### 首页
+![首页](docs/home.png)
+
+### 登录页面
+![登录页面](docs/signin.png)
+
+### 仪表盘
+![仪表盘](docs/dashboard.png)
+
+### 应用列表
+![应用列表](docs/apps.png)
+
+### 应用详情
+![应用详情](docs/app-detail.png)
+
 ## HTTP 客户端服务
 
 项目使用了统一的 HTTP 客户端服务（http-client.ts）来处理所有 API 请求，实现了自动 token 刷新机制：
