@@ -1,14 +1,38 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { fetchApps, fetchAppApiKeys, createAppApiKey, deleteAppApiKey, AppData, ApiKey, exportApp, copyApp, deleteApp, exportAllApps } from '@/services/apps';
-import { useRouter } from 'next/navigation';
-import { getEmojiFromName } from '@/utils/emoji';
-import { Button } from '@heroui/button';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal';
-import { Tooltip } from '@heroui/tooltip';
-import { Input } from '@heroui/input';
-import { ChevronDownIcon, ChevronUpIcon, ExportIcon, CopyIcon, DeleteIcon } from '@/components/icons';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@heroui/button";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/modal";
+import { Tooltip } from "@heroui/tooltip";
+import { Input } from "@heroui/input";
+
+import { getEmojiFromName } from "@/utils/emoji";
+import {
+  fetchApps,
+  fetchAppApiKeys,
+  createAppApiKey,
+  deleteAppApiKey,
+  AppData,
+  ApiKey,
+  exportApp,
+  copyApp,
+  deleteApp,
+  exportAllApps,
+} from "@/services/apps";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ExportIcon,
+  CopyIcon,
+  DeleteIcon,
+} from "@/components/icons";
 
 export default function AppsPage() {
   const router = useRouter();
@@ -19,7 +43,9 @@ export default function AppsPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const [loadingApiKeys, setLoadingApiKeys] = useState<Record<string, boolean>>({});
+  const [loadingApiKeys, setLoadingApiKeys] = useState<Record<string, boolean>>(
+    {},
+  );
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [creatingApiKey, setCreatingApiKey] = useState<string | null>(null);
   const [deletingApiKey, setDeletingApiKey] = useState<string | null>(null);
@@ -30,11 +56,11 @@ export default function AppsPage() {
   const [exportingApp, setExportingApp] = useState<string | null>(null);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [copyAppData, setCopyAppData] = useState({
-    name: '',
-    icon_type: 'emoji',
-    icon: '🤖',
-    icon_background: '#D1E0FF',
-    mode: 'advanced-chat'
+    name: "",
+    icon_type: "emoji",
+    icon: "🤖",
+    icon_background: "#D1E0FF",
+    mode: "advanced-chat",
   });
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [deletingApp, setDeletingApp] = useState<string | null>(null);
@@ -46,34 +72,35 @@ export default function AppsPage() {
   const fetchAppsList = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetchApps(page, 30, '', false);
-      
+      const response = await fetchApps(page, 30, "", false);
+
       if (response) {
         setApps(response.data);
         setHasMore(response.has_more);
         setTotal(response.total);
-        
+
         // 初始化加载状态
         const initialLoadingState: Record<string, boolean> = {};
         const initialExpandedState: Record<string, boolean> = {};
-        response.data.forEach(app => {
+
+        response.data.forEach((app) => {
           initialLoadingState[app.id] = false;
           initialExpandedState[app.id] = false;
         });
         setLoadingApiKeys(initialLoadingState);
         setExpandedApps(initialExpandedState);
-        
+
         // 为每个应用加载 API 密钥
-        response.data.forEach(app => {
+        response.data.forEach((app) => {
           loadAppApiKeys(app.id);
         });
       } else {
-        setError('获取应用列表失败');
+        setError("获取应用列表失败");
       }
     } catch (err) {
-      setError('获取应用列表时发生错误');
+      setError("获取应用列表时发生错误");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -86,102 +113,114 @@ export default function AppsPage() {
 
   const loadMore = () => {
     if (hasMore && !isLoading) {
-      setPage(prevPage => prevPage + 1);
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
   const loadAppApiKeys = async (appId: string) => {
-    setLoadingApiKeys(prev => ({ ...prev, [appId]: true }));
-    
+    setLoadingApiKeys((prev) => ({ ...prev, [appId]: true }));
+
     try {
       const response = await fetchAppApiKeys(appId);
-      
+
       if (response) {
-        setAppApiKeys(prev => ({
+        setAppApiKeys((prev) => ({
           ...prev,
-          [appId]: response.data
+          [appId]: response.data,
         }));
       }
     } catch (err) {
       console.error(`获取应用 ${appId} 的 API 密钥失败:`, err);
     } finally {
-      setLoadingApiKeys(prev => ({ ...prev, [appId]: false }));
+      setLoadingApiKeys((prev) => ({ ...prev, [appId]: false }));
     }
   };
 
   const navigateToAppDetail = (appId: string) => {
     if (!appId) {
-      console.error('无效的应用ID');
+      console.error("无效的应用ID");
+
       return;
     }
-    
+
     // 确保ID格式正确
     const cleanId = appId.trim();
+
     if (!cleanId.match(/^[a-zA-Z0-9-]+$/)) {
-      console.error('应用ID格式不正确:', appId);
+      console.error("应用ID格式不正确:", appId);
+
       return;
     }
-    
+
     router.push(`/apps/${cleanId}`);
   };
-  
+
   const copyApiKey = (e: React.MouseEvent, apiKey: string) => {
     e.stopPropagation(); // 阻止事件冒泡，避免触发卡片点击
-    
-    navigator.clipboard.writeText(apiKey)
+
+    navigator.clipboard
+      .writeText(apiKey)
       .then(() => {
         setCopySuccess(apiKey);
         setTimeout(() => setCopySuccess(null), 2000);
       })
-      .catch(err => {
-        console.error('复制失败:', err);
+      .catch((err) => {
+        console.error("复制失败:", err);
       });
   };
-  
+
   const handleCreateApiKey = async (e: React.MouseEvent, appId: string) => {
     e.stopPropagation(); // 阻止事件冒泡，避免触发卡片点击
-    
+
     setCreatingApiKey(appId);
-    
+
     try {
       const newKey = await createAppApiKey(appId);
-      
+
       if (newKey) {
         // 更新应用的 API 密钥列表
-        setAppApiKeys(prev => ({
+        setAppApiKeys((prev) => ({
           ...prev,
-          [appId]: [...(prev[appId] || []), newKey]
+          [appId]: [...(prev[appId] || []), newKey],
         }));
-        
+
         // 保存新创建的密钥，用于显示在模态框中
         setNewApiKey(newKey);
         setIsModalOpen(true); // 打开模态框
       }
     } catch (err) {
-      console.error('创建 API 密钥失败:', err);
+      console.error("创建 API 密钥失败:", err);
     } finally {
       setCreatingApiKey(null);
     }
   };
-  
-  const handleDeleteApiKey = async (e: React.MouseEvent, appId: string, keyId: string) => {
+
+  const handleDeleteApiKey = async (
+    e: React.MouseEvent,
+    appId: string,
+    keyId: string,
+  ) => {
     e.stopPropagation(); // 阻止事件冒泡，避免触发卡片点击
-    
-    if (confirm('确定要删除此 API 密钥吗？此操作无法撤销，并且将使使用此密钥的应用无法访问 API。')) {
+
+    if (
+      confirm(
+        "确定要删除此 API 密钥吗？此操作无法撤销，并且将使使用此密钥的应用无法访问 API。",
+      )
+    ) {
       setDeletingApiKey(keyId);
-      
+
       try {
         const success = await deleteAppApiKey(appId, keyId);
-        
+
         if (success) {
           // 从应用的 API 密钥列表中移除已删除的密钥
-          setAppApiKeys(prev => ({
+          setAppApiKeys((prev) => ({
             ...prev,
-            [appId]: (prev[appId] || []).filter(key => key.id !== keyId)
+            [appId]: (prev[appId] || []).filter((key) => key.id !== keyId),
           }));
         }
       } catch (err) {
-        console.error('删除 API 密钥失败:', err);
+        console.error("删除 API 密钥失败:", err);
       } finally {
         setDeletingApiKey(null);
       }
@@ -190,18 +229,20 @@ export default function AppsPage() {
 
   const handleExportApp = async (appId: string) => {
     setExportingApp(appId);
-    
+
     try {
       const response = await exportApp(appId, false);
+
       if (response && response.data) {
         // 找到当前应用
-        const app = apps.find(app => app.id === appId);
+        const app = apps.find((app) => app.id === appId);
         const fileName = app ? `${app.name}.yml` : `app-${appId}.yml`;
-        
+
         // 创建下载链接
-        const blob = new Blob([response.data], { type: 'application/yaml' });
+        const blob = new Blob([response.data], { type: "application/yaml" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
+
         a.href = url;
         a.download = fileName;
         document.body.appendChild(a);
@@ -210,7 +251,7 @@ export default function AppsPage() {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('导出应用失败:', error);
+      console.error("导出应用失败:", error);
     } finally {
       setExportingApp(null);
     }
@@ -218,46 +259,47 @@ export default function AppsPage() {
 
   const handleCopyApp = (appId: string) => {
     setSelectedAppId(appId);
-    
+
     // 找到当前应用，预填复制表单
-    const app = apps.find(app => app.id === appId);
+    const app = apps.find((app) => app.id === appId);
+
     if (app) {
       setCopyAppData({
         name: `${app.name} 副本`,
         icon_type: app.icon_type,
         icon: app.icon,
         icon_background: app.icon_background,
-        mode: app.mode
+        mode: app.mode,
       });
     }
-    
+
     setIsCopyModalOpen(true);
   };
 
   const submitCopyApp = async () => {
     if (!selectedAppId || !copyAppData.name) return;
-    
+
     setCopyingApp(selectedAppId);
-    
+
     try {
       const newApp = await copyApp(selectedAppId, copyAppData);
-      
+
       if (newApp) {
         // 刷新应用列表
         fetchAppsList();
         setIsCopyModalOpen(false);
-        
+
         // 重置表单
         setCopyAppData({
-          name: '',
-          icon_type: '',
-          icon: '',
-          icon_background: '',
-          mode: ''
+          name: "",
+          icon_type: "",
+          icon: "",
+          icon_background: "",
+          mode: "",
         });
       }
     } catch (error) {
-      console.error('复制应用失败:', error);
+      console.error("复制应用失败:", error);
     } finally {
       setCopyingApp(null);
       setSelectedAppId(null);
@@ -271,12 +313,12 @@ export default function AppsPage() {
 
   const confirmDeleteApp = async () => {
     if (!appToDelete) return;
-    
+
     setDeletingApp(appToDelete.id);
-    
+
     try {
       const success = await deleteApp(appToDelete.id);
-      
+
       if (success) {
         // 刷新应用列表
         fetchAppsList();
@@ -284,7 +326,7 @@ export default function AppsPage() {
         setAppToDelete(null);
       }
     } catch (error) {
-      console.error('删除应用失败:', error);
+      console.error("删除应用失败:", error);
     } finally {
       setDeletingApp(null);
     }
@@ -293,13 +335,13 @@ export default function AppsPage() {
   const closeModal = () => {
     setIsModalOpen(false);
   };
-  
+
   const toggleApiKeysVisibility = (appId: string) => {
-    setExpandedApps(prev => ({
+    setExpandedApps((prev) => ({
       ...prev,
-      [appId]: !prev[appId]
+      [appId]: !prev[appId],
     }));
-    
+
     // 如果没有加载过 API 密钥，则加载
     if (!appApiKeys[appId] && !loadingApiKeys[appId]) {
       loadAppApiKeys(appId);
@@ -310,20 +352,21 @@ export default function AppsPage() {
     try {
       setExportingAllApps(true);
       const blob = await exportAllApps();
-      
+
       // 创建下载链接
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
+
       a.href = url;
-      a.download = `dify-apps-${new Date().toISOString().split('T')[0]}.zip`;
+      a.download = `dify-apps-${new Date().toISOString().split("T")[0]}.zip`;
       document.body.appendChild(a);
       a.click();
-      
+
       // 清理
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('导出所有应用失败:', error);
+      console.error("导出所有应用失败:", error);
       // 可以添加错误提示
     } finally {
       setExportingAllApps(false);
@@ -335,11 +378,11 @@ export default function AppsPage() {
       <div className="flex justify-end items-center mb-8 gap-2">
         <Button
           color="primary"
-          variant="flat"
+          isLoading={exportingAllApps}
           size="md"
           startContent={<ExportIcon className="w-4 h-4" />}
+          variant="flat"
           onPress={handleExportAllApps}
-          isLoading={exportingAllApps}
         >
           zip备份全部{total} 个应用
         </Button>
@@ -360,80 +403,103 @@ export default function AppsPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {apps.map(app => (
-              <div 
-                key={app.id} 
+            {apps.map((app) => (
+              <div
+                key={app.id}
                 className="bg-content1 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-default-100"
               >
-                <div className="p-6 relative" onClick={() => navigateToAppDetail(app.id)}>
+                <div
+                  className="p-6 relative"
+                  onClick={() => navigateToAppDetail(app.id)}
+                >
                   <div className="flex items-center gap-4 mb-4">
-                    <div 
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl ${app.icon_type === 'emoji' ? app.icon_background : ''}`}
-                      style={{ backgroundColor: app.icon_type === 'emoji' ? app.icon_background : 'transparent' }}
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl ${app.icon_type === "emoji" ? app.icon_background : ""}`}
+                      style={{
+                        backgroundColor:
+                          app.icon_type === "emoji"
+                            ? app.icon_background
+                            : "transparent",
+                      }}
                     >
-                      {app.icon_type === 'emoji' ? getEmojiFromName(app.icon) : (
-                        <img src={app.icon_url || ''} alt={app.name} className="w-full h-full object-cover rounded-lg" />
+                      {app.icon_type === "emoji" ? (
+                        getEmojiFromName(app.icon)
+                      ) : (
+                        <img
+                          alt={app.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          src={app.icon_url || ""}
+                        />
                       )}
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">{app.name}</h3>
-                      <p className="text-xs text-default-500 mt-1">{app.description || '无描述'}</p>
+                      <p className="text-xs text-default-500 mt-1">
+                        {app.description || "无描述"}
+                      </p>
                       <p className="text-xs text-default-500">
-                        {app.mode} · 创建于 {new Date(app.created_at * 1000).toLocaleDateString()}
+                        {app.mode} · 创建于{" "}
+                        {new Date(app.created_at * 1000).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-2 mt-4" onClick={(e) => e.stopPropagation()}>
+
+                  <div
+                    className="flex items-center space-x-2 mt-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
-                      color="primary"
-                      variant="flat"
-                      size="sm"
-                      isLoading={loadingApiKeys[app.id]}
-                      onClick={(e) => handleCreateApiKey(e, app.id)}
                       className="text-xs font-medium"
+                      color="primary"
+                      isLoading={loadingApiKeys[app.id]}
+                      size="sm"
+                      variant="flat"
+                      onClick={(e) => handleCreateApiKey(e, app.id)}
                     >
                       创建秘钥
                     </Button>
                     <Button
+                      className="text-xs font-medium"
                       color="primary"
-                      variant="flat"
+                      isLoading={exportingApp === app.id}
                       size="sm"
                       startContent={<ExportIcon className="w-4 h-4" />}
+                      variant="flat"
                       onPress={() => handleExportApp(app.id)}
-                      isLoading={exportingApp === app.id}
-                      className="text-xs font-medium"
                     >
                       导出
                     </Button>
                     <Button
+                      className="text-xs font-medium"
                       color="primary"
-                      variant="flat"
+                      isLoading={copyingApp === app.id}
                       size="sm"
                       startContent={<CopyIcon className="w-4 h-4" />}
+                      variant="flat"
                       onPress={() => handleCopyApp(app.id)}
-                      isLoading={copyingApp === app.id}
-                      className="text-xs font-medium"
                     >
                       复制
                     </Button>
                     <Button
+                      className="text-xs font-medium"
                       color="danger"
-                      variant="flat"
+                      isLoading={deletingApp === app.id}
                       size="sm"
                       startContent={<DeleteIcon className="w-4 h-4" />}
+                      variant="flat"
                       onPress={() => handleDeleteApp(app)}
-                      isLoading={deletingApp === app.id}
-                      className="text-xs font-medium"
                     >
                       删除
                     </Button>
                   </div>
                 </div>
-                    
+
                 {/* 秘钥栏 */}
-                <div className="border-t border-default-100 p-5 bg-default-50" onClick={(e) => e.stopPropagation()}>
-                  <div 
+                <div
+                  className="border-t border-default-100 p-5 bg-default-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div
                     className="flex items-center justify-between mb-2 cursor-pointer hover:bg-default-100 p-2 rounded-md transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -449,51 +515,62 @@ export default function AppsPage() {
                       )}
                     </div>
                     <div>
-                      {expandedApps[app.id] ? 
-                        <ChevronUpIcon className="w-4 h-4" /> : 
+                      {expandedApps[app.id] ? (
+                        <ChevronUpIcon className="w-4 h-4" />
+                      ) : (
                         <ChevronDownIcon className="w-4 h-4" />
-                      }
+                      )}
                     </div>
                   </div>
-                  
-                  {expandedApps[app.id] && (
-                    loadingApiKeys[app.id] ? (
+
+                  {expandedApps[app.id] &&
+                    (loadingApiKeys[app.id] ? (
                       <div className="text-xs text-default-500 py-2 flex justify-center items-center">
-                        <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2"></div>
+                        <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2" />
                         加载密钥中...
                       </div>
-                    ) : !appApiKeys[app.id] || appApiKeys[app.id].length === 0 ? (
-                      <div className="text-xs text-default-500 py-3 text-center bg-default-100 rounded-lg">暂无 API 密钥</div>
+                    ) : !appApiKeys[app.id] ||
+                      appApiKeys[app.id].length === 0 ? (
+                      <div className="text-xs text-default-500 py-3 text-center bg-default-100 rounded-lg">
+                        暂无 API 密钥
+                      </div>
                     ) : (
                       <div className="space-y-2 mt-3">
-                        {appApiKeys[app.id].map(key => (
-                          <div 
-                            key={key.id} 
+                        {appApiKeys[app.id].map((key) => (
+                          <div
+                            key={key.id}
                             className="flex items-center justify-between bg-default-100 p-3 rounded-lg hover:bg-default-200 transition-colors"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Tooltip content={key.token} placement="bottom">
                               <div className="text-xs font-mono truncate max-w-[150px] bg-default-200 px-2 py-1 rounded">
-                                {key.token.substring(0, 10)}...{key.token.substring(key.token.length - 4)}
+                                {key.token.substring(0, 10)}...
+                                {key.token.substring(key.token.length - 4)}
                               </div>
                             </Tooltip>
                             <div className="flex gap-2">
                               <Button
+                                className="text-xs min-w-[60px] font-medium"
+                                color={
+                                  copySuccess === key.token
+                                    ? "success"
+                                    : "primary"
+                                }
                                 size="sm"
-                                color={copySuccess === key.token ? "success" : "primary"}
                                 variant="flat"
                                 onClick={(e) => copyApiKey(e, key.token)}
-                                className="text-xs min-w-[60px] font-medium"
                               >
-                                {copySuccess === key.token ? '已复制' : '复制'}
+                                {copySuccess === key.token ? "已复制" : "复制"}
                               </Button>
                               <Button
-                                size="sm"
-                                color="danger"
-                                variant="flat"
-                                isLoading={deletingApiKey === key.id}
-                                onClick={(e) => handleDeleteApiKey(e, app.id, key.id)}
                                 className="text-xs font-medium"
+                                color="danger"
+                                isLoading={deletingApiKey === key.id}
+                                size="sm"
+                                variant="flat"
+                                onClick={(e) =>
+                                  handleDeleteApiKey(e, app.id, key.id)
+                                }
                               >
                                 删除
                               </Button>
@@ -501,27 +578,26 @@ export default function AppsPage() {
                           </div>
                         ))}
                       </div>
-                    )
-                  )}
+                    ))}
                 </div>
               </div>
             ))}
           </div>
-          
+
           {hasMore && (
             <div className="mt-8 text-center">
-              <button 
-                onClick={loadMore}
-                disabled={isLoading}
+              <button
                 className="px-5 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 font-medium transition-colors"
+                disabled={isLoading}
+                onClick={loadMore}
               >
-                {isLoading ? '加载中...' : '加载更多'}
+                {isLoading ? "加载中..." : "加载更多"}
               </button>
             </div>
           )}
         </>
       )}
-      
+
       {/* 新创建的 API 密钥模态框 */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <ModalContent>
@@ -530,35 +606,42 @@ export default function AppsPage() {
           </ModalHeader>
           <ModalBody>
             <p className="text-sm text-default-500 mb-3">
-              请保存此 API 密钥，它只会显示一次。如果丢失，您需要创建一个新的密钥。
+              请保存此 API
+              密钥，它只会显示一次。如果丢失，您需要创建一个新的密钥。
             </p>
             <Input
-              type="text"
-              value={newApiKey?.token || ''}
               readOnly
-              variant="bordered"
               className="font-mono bg-default-50"
               endContent={
                 <Button
+                  className="font-medium"
+                  color={
+                    copySuccess === newApiKey?.token ? "success" : "primary"
+                  }
                   size="sm"
-                  color={copySuccess === newApiKey?.token ? "success" : "primary"}
                   variant="flat"
                   onClick={(e) => newApiKey && copyApiKey(e, newApiKey.token)}
-                  className="font-medium"
                 >
-                  {copySuccess === newApiKey?.token ? '已复制' : '复制'}
+                  {copySuccess === newApiKey?.token ? "已复制" : "复制"}
                 </Button>
               }
+              type="text"
+              value={newApiKey?.token || ""}
+              variant="bordered"
             />
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onPress={closeModal} className="font-medium">
+            <Button
+              className="font-medium"
+              color="primary"
+              onPress={closeModal}
+            >
               确定
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      
+
       {/* 复制应用模态框 */}
       <Modal isOpen={isCopyModalOpen} onClose={() => setIsCopyModalOpen(false)}>
         <ModalContent>
@@ -568,37 +651,45 @@ export default function AppsPage() {
           <ModalBody>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">应用名称</label>
+                <label className="text-sm font-medium mb-1 block">
+                  应用名称
+                </label>
                 <Input
+                  placeholder="输入应用名称"
                   type="text"
                   value={copyAppData.name}
-                  onChange={(e) => setCopyAppData({...copyAppData, name: e.target.value})}
                   variant="bordered"
-                  placeholder="输入应用名称"
+                  onChange={(e) =>
+                    setCopyAppData({ ...copyAppData, name: e.target.value })
+                  }
                 />
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium mb-1 block">图标</label>
                 <div className="flex items-center gap-2">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                     style={{ backgroundColor: copyAppData.icon_background }}
                   >
-                    {copyAppData.icon_type === 'emoji' ? getEmojiFromName(copyAppData.icon) : '🤖'}
+                    {copyAppData.icon_type === "emoji"
+                      ? getEmojiFromName(copyAppData.icon)
+                      : "🤖"}
                   </div>
                   <span className="text-xs text-default-500">
                     将使用原应用的图标设置
                   </span>
                 </div>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium mb-1 block">应用模式</label>
+                <label className="text-sm font-medium mb-1 block">
+                  应用模式
+                </label>
                 <Input
+                  disabled
                   type="text"
                   value={copyAppData.mode}
-                  disabled
                   variant="bordered"
                 />
                 <p className="text-xs text-default-500 mt-1">
@@ -608,49 +699,53 @@ export default function AppsPage() {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button 
-              variant="flat" 
-              onPress={() => setIsCopyModalOpen(false)}
+            <Button
               className="font-medium"
+              variant="flat"
+              onPress={() => setIsCopyModalOpen(false)}
             >
               取消
             </Button>
-            <Button 
-              color="primary" 
-              onPress={submitCopyApp}
-              isLoading={copyingApp === selectedAppId}
+            <Button
               className="font-medium"
+              color="primary"
+              isLoading={copyingApp === selectedAppId}
+              onPress={submitCopyApp}
             >
               确定
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      
+
       {/* 删除应用模态框 */}
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">
             <span className="text-xl font-semibold">删除应用</span>
           </ModalHeader>
           <ModalBody>
             <p className="text-sm text-default-500 mb-3">
-              确定要删除应用 {appToDelete?.name} 吗？此操作无法撤销，并且将删除所有相关数据。
+              确定要删除应用 {appToDelete?.name}{" "}
+              吗？此操作无法撤销，并且将删除所有相关数据。
             </p>
           </ModalBody>
           <ModalFooter>
-            <Button 
-              variant="flat" 
-              onPress={() => setIsDeleteModalOpen(false)}
+            <Button
               className="font-medium"
+              variant="flat"
+              onPress={() => setIsDeleteModalOpen(false)}
             >
               取消
             </Button>
-            <Button 
-              color="danger" 
-              onPress={confirmDeleteApp}
-              isLoading={deletingApp === appToDelete?.id}
+            <Button
               className="font-medium"
+              color="danger"
+              isLoading={deletingApp === appToDelete?.id}
+              onPress={confirmDeleteApp}
             >
               确定
             </Button>

@@ -1,6 +1,10 @@
 // API 服务
-import { getTokens, saveAuth, getApiDomain } from './auth';
-import { get as httpGet, post as httpPost, put as httpPut, del as httpDel } from './http-client';
+import {
+  get as httpGet,
+  post as httpPost,
+  put as httpPut,
+  del as httpDel,
+} from "./http-client";
 
 // API 响应接口
 export interface ApiResponse<T = any> {
@@ -17,7 +21,7 @@ export interface ApiResponse<T = any> {
  */
 export async function get<T = any>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   return httpGet<T>(endpoint, options);
 }
@@ -32,7 +36,7 @@ export async function get<T = any>(
 export async function post<T = any>(
   endpoint: string,
   data: any,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   return httpPost<T>(endpoint, data, options);
 }
@@ -47,7 +51,7 @@ export async function post<T = any>(
 export async function put<T = any>(
   endpoint: string,
   data: any,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   return httpPut<T>(endpoint, data, options);
 }
@@ -60,7 +64,7 @@ export async function put<T = any>(
  */
 export async function del<T = any>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   return httpDel<T>(endpoint, options);
 }

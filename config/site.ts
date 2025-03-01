@@ -15,7 +15,7 @@ export const siteConfig = {
     {
       label: "应用列表",
       href: "/apps",
-    }
+    },
   ],
   navMenuItems: [
     {

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Link } from "@heroui/link";
 import { Snippet } from "@heroui/snippet";
@@ -10,14 +10,27 @@ import { Tooltip } from "@heroui/tooltip";
 
 import { siteConfig } from "@/config/site";
 import { title, subtitle } from "@/components/primitives";
-import { GithubIcon, RocketIcon, SparklesIcon, LightningIcon } from "@/components/icons";
+import {
+  GithubIcon,
+  RocketIcon,
+  SparklesIcon,
+  LightningIcon,
+} from "@/components/icons";
 
 export default function Home() {
   const techStack = [
     { name: "Next.js", color: "primary", description: "React 框架" },
     { name: "React", color: "secondary", description: "用户界面库" },
-    { name: "TypeScript", color: "success", description: "类型安全的 JavaScript" },
-    { name: "Tailwind CSS", color: "warning", description: "实用优先的 CSS 框架" },
+    {
+      name: "TypeScript",
+      color: "success",
+      description: "类型安全的 JavaScript",
+    },
+    {
+      name: "Tailwind CSS",
+      color: "warning",
+      description: "实用优先的 CSS 框架",
+    },
     { name: "HeroUI", color: "danger", description: "现代化 UI 组件库" },
     { name: "Framer Motion", color: "primary", description: "动画库" },
     { name: "Recharts", color: "secondary", description: "数据可视化" },
@@ -33,7 +46,9 @@ export default function Home() {
           </div>
         </div>
         <h1 className={`${title()} text-4xl md:text-5xl mb-2`}>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Dify</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            Dify
+          </span>
           <span className={title({ color: "violet" })}> Dashboard</span>
         </h1>
         <h2 className={`${title()} text-2xl md:text-3xl mb-6`}>
@@ -59,10 +74,10 @@ export default function Home() {
         </Link>
         <Link
           isExternal
-          className={buttonStyles({ 
-            variant: "bordered", 
+          className={buttonStyles({
+            variant: "bordered",
             radius: "full",
-            size: "lg"
+            size: "lg",
           })}
           href={siteConfig.links.github}
         >
@@ -79,11 +94,13 @@ export default function Home() {
                 <RocketIcon className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-2">快速部署</h3>
-              <p className="text-default-500">一键部署，无需复杂配置，立即开始管理您的Dify应用</p>
+              <p className="text-default-500">
+                一键部署，无需复杂配置，立即开始管理您的Dify应用
+              </p>
             </div>
           </CardBody>
         </Card>
-        
+
         <Card className="border-1 border-default-200 shadow-sm hover:shadow-md transition-shadow">
           <CardBody>
             <div className="flex flex-col items-center text-center p-4">
@@ -91,11 +108,13 @@ export default function Home() {
                 <SparklesIcon className="w-8 h-8 text-secondary" />
               </div>
               <h3 className="text-xl font-bold mb-2">现代界面</h3>
-              <p className="text-default-500">精心设计的用户界面，提供流畅的操作体验和直观的数据展示</p>
+              <p className="text-default-500">
+                精心设计的用户界面，提供流畅的操作体验和直观的数据展示
+              </p>
             </div>
           </CardBody>
         </Card>
-        
+
         <Card className="border-1 border-default-200 shadow-sm hover:shadow-md transition-shadow">
           <CardBody>
             <div className="flex flex-col items-center text-center p-4">
@@ -103,7 +122,9 @@ export default function Home() {
                 <LightningIcon className="w-8 h-8 text-success" />
               </div>
               <h3 className="text-xl font-bold mb-2">高效管理</h3>
-              <p className="text-default-500">轻松管理所有应用，查看统计数据，导出配置，一站式解决方案</p>
+              <p className="text-default-500">
+                轻松管理所有应用，查看统计数据，导出配置，一站式解决方案
+              </p>
             </div>
           </CardBody>
         </Card>
@@ -119,9 +140,9 @@ export default function Home() {
               {techStack.map((tech) => (
                 <Tooltip key={tech.name} content={tech.description}>
                   <Chip
+                    className="text-sm font-medium"
                     color={tech.color as any}
                     variant="flat"
-                    className="text-sm font-medium"
                   >
                     {tech.name}
                   </Chip>
@@ -133,16 +154,16 @@ export default function Home() {
       </div>
 
       <div className="mt-8 w-full max-w-5xl">
-        <Link href="/dashboard" className="w-full">
+        <Link className="w-full" href="/dashboard">
           <Card className="w-full border-1 border-default-200 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-r from-primary-50 to-secondary-50">
             <CardBody className="flex items-center justify-center py-8">
               <div className="text-center">
                 <h3 className="text-2xl font-bold mb-2">准备好开始了吗？</h3>
-                <Snippet 
-                  hideCopyButton 
-                  hideSymbol 
-                  variant="flat"
+                <Snippet
+                  hideCopyButton
+                  hideSymbol
                   className="bg-background/60 backdrop-blur-sm border-1 border-default-200"
+                  variant="flat"
                 >
                   <span className="font-medium">
                     开始使用 Dify Dashboard 管理您的 AI 应用

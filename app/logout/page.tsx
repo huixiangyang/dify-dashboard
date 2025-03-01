@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LogoutPage() {
   const { logout } = useAuth();
@@ -11,9 +12,9 @@ export default function LogoutPage() {
   useEffect(() => {
     // 执行登出操作
     logout();
-    
+
     // 重定向到首页
-    router.push('/');
+    router.push("/");
   }, [logout, router]);
 
   return (

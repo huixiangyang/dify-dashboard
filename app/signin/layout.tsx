@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import clsx from "clsx";
+
 import { fontSans } from "@/config/fonts";
 
 export const metadata: Metadata = {
@@ -13,14 +14,14 @@ export default function SignInLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={clsx(
-      "min-h-screen bg-background font-sans antialiased",
-      fontSans.variable,
-    )}>
+    <div
+      className={clsx(
+        "min-h-screen bg-background font-sans antialiased",
+        fontSans.variable,
+      )}
+    >
       <main className="flex flex-col items-center justify-center min-h-screen">
-        <div className="w-full max-w-md">
-          {children}
-        </div>
+        <div className="w-full max-w-md">{children}</div>
       </main>
     </div>
   );

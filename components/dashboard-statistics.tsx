@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Progress } from "@heroui/progress";
-import { fetchStatistics, StatisticsData, getMockStatistics } from '@/services/statistics';
+
+import { StatisticsData, getMockStatistics } from "@/services/statistics";
 
 export default function DashboardStatistics() {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,19 +16,19 @@ export default function DashboardStatistics() {
     const loadStatistics = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         // 在实际环境中使用 fetchStatistics()
         // 在开发环境中使用模拟数据
         const data = getMockStatistics(); // 替换为 await fetchStatistics();
-        
+
         if (data) {
           setStatistics(data);
         } else {
-          setError('获取统计数据失败');
+          setError("获取统计数据失败");
         }
       } catch (err) {
-        setError('获取统计数据时发生错误');
+        setError("获取统计数据时发生错误");
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -43,7 +44,7 @@ export default function DashboardStatistics() {
         {[...Array(4)].map((_, index) => (
           <Card key={index} className="w-full h-24 bg-content1 animate-pulse">
             <CardBody className="flex items-center justify-center">
-              <div className="h-4 w-3/4 bg-default-200 rounded"></div>
+              <div className="h-4 w-3/4 bg-default-200 rounded" />
             </CardBody>
           </Card>
         ))}
@@ -65,12 +66,16 @@ export default function DashboardStatistics() {
         <CardBody className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <span className="text-default-500 text-sm">应用总数</span>
-            <span className="text-2xl font-bold text-primary">{statistics?.totalApps || 0}</span>
+            <span className="text-2xl font-bold text-primary">
+              {statistics?.totalApps || 0}
+            </span>
           </div>
           <Divider className="my-1" />
           <div className="flex items-center gap-2">
             <span className="text-xs text-default-400">总计</span>
-            <span className="text-xs text-default-600">{statistics?.totalApps || 0} 个应用</span>
+            <span className="text-xs text-default-600">
+              {statistics?.totalApps || 0} 个应用
+            </span>
           </div>
         </CardBody>
       </Card>
@@ -79,19 +84,28 @@ export default function DashboardStatistics() {
         <CardBody className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <span className="text-default-500 text-sm">对话型应用</span>
-            <span className="text-2xl font-bold text-secondary">{statistics?.chatApps || 0}</span>
+            <span className="text-2xl font-bold text-secondary">
+              {statistics?.chatApps || 0}
+            </span>
           </div>
           <Divider className="my-1" />
           <div className="flex items-center gap-2">
             <span className="text-xs text-default-400">占比</span>
-            <Progress 
-              value={statistics?.totalApps ? (statistics.chatApps / statistics.totalApps) * 100 : 0} 
+            <Progress
               className="max-w-md"
               color="secondary"
               size="sm"
+              value={
+                statistics?.totalApps
+                  ? (statistics.chatApps / statistics.totalApps) * 100
+                  : 0
+              }
             />
             <span className="text-xs text-default-600">
-              {statistics?.totalApps ? Math.round((statistics.chatApps / statistics.totalApps) * 100) : 0}%
+              {statistics?.totalApps
+                ? Math.round((statistics.chatApps / statistics.totalApps) * 100)
+                : 0}
+              %
             </span>
           </div>
         </CardBody>
@@ -101,19 +115,30 @@ export default function DashboardStatistics() {
         <CardBody className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <span className="text-default-500 text-sm">文本生成型应用</span>
-            <span className="text-2xl font-bold text-success">{statistics?.textGenApps || 0}</span>
+            <span className="text-2xl font-bold text-success">
+              {statistics?.textGenApps || 0}
+            </span>
           </div>
           <Divider className="my-1" />
           <div className="flex items-center gap-2">
             <span className="text-xs text-default-400">占比</span>
-            <Progress 
-              value={statistics?.totalApps ? (statistics.textGenApps / statistics.totalApps) * 100 : 0} 
+            <Progress
               className="max-w-md"
               color="success"
               size="sm"
+              value={
+                statistics?.totalApps
+                  ? (statistics.textGenApps / statistics.totalApps) * 100
+                  : 0
+              }
             />
             <span className="text-xs text-default-600">
-              {statistics?.totalApps ? Math.round((statistics.textGenApps / statistics.totalApps) * 100) : 0}%
+              {statistics?.totalApps
+                ? Math.round(
+                    (statistics.textGenApps / statistics.totalApps) * 100,
+                  )
+                : 0}
+              %
             </span>
           </div>
         </CardBody>
@@ -123,15 +148,18 @@ export default function DashboardStatistics() {
         <CardBody className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             <span className="text-default-500 text-sm">API Keys</span>
-            <span className="text-2xl font-bold text-warning">{statistics?.apiKeys || 0}</span>
+            <span className="text-2xl font-bold text-warning">
+              {statistics?.apiKeys || 0}
+            </span>
           </div>
           <Divider className="my-1" />
           <div className="flex items-center gap-2">
             <span className="text-xs text-default-400">平均每应用</span>
             <span className="text-xs text-default-600">
-              {statistics?.totalApps && statistics?.apiKeys 
-                ? (statistics.apiKeys / statistics.totalApps).toFixed(1) 
-                : 0} 个
+              {statistics?.totalApps && statistics?.apiKeys
+                ? (statistics.apiKeys / statistics.totalApps).toFixed(1)
+                : 0}{" "}
+              个
             </span>
           </div>
         </CardBody>

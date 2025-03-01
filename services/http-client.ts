@@ -1,5 +1,5 @@
 // HTTP 客户端服务
-import { getTokens, saveAuth, getApiDomain, refreshToken } from './auth';
+import { getTokens, saveAuth, getApiDomain, refreshToken } from "./auth";
 
 // 刷新 token 的锁，防止多次并发刷新请求
 let isRefreshing = false;
@@ -12,17 +12,22 @@ let refreshQueue: Array<(token: string) => void> = [];
  * @param requireAuth 是否需要认证
  * @returns 请求头对象
  */
-export function createHeaders(options: RequestInit = {}, requireAuth: boolean = true): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Accept': '*/*',
+export function createHeaders(
+  options: RequestInit = {},
+  requireAuth: boolean = true,
+): HeadersInit {
+  // 创建基本请求头
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "*/*",
     ...(options.headers || {}),
-  };
+  } as Record<string, string>;
 
   if (requireAuth) {
     const tokens = getTokens();
+
     if (tokens) {
-      headers['Authorization'] = `Bearer ${tokens.accessToken}`;
+      headers["Authorization"] = `Bearer ${tokens.accessToken}`;
     }
   }
 
@@ -36,12 +41,13 @@ export function createHeaders(options: RequestInit = {}, requireAuth: boolean = 
 export async function refreshTokenAndWait(): Promise<string | null> {
   const tokens = getTokens();
   const domain = getApiDomain();
-  
+
   if (!tokens || !tokens.refreshToken) {
-    console.error('无法刷新 token: 缺少 refresh token');
+    console.error("无法刷新 token: 缺少 refresh token");
+
     return null;
   }
-  
+
   // 如果已经在刷新中，则加入等待队列
   if (isRefreshing) {
     return new Promise<string | null>((resolve) => {
@@ -50,31 +56,34 @@ export async function refreshTokenAndWait(): Promise<string | null> {
       });
     });
   }
-  
+
   isRefreshing = true;
-  
+
   try {
-    console.log('开始刷新 token...');
+    console.log("开始刷新 token...");
     const response = await refreshToken(domain, tokens.refreshToken);
-    
-    if (response.result === 'success' && response.data) {
+
+    if (response.result === "success" && response.data) {
       const { access_token, refresh_token } = response.data;
-      
+
       // 保存新的 token
       saveAuth(access_token, refresh_token, domain);
-      
+
       // 执行队列中的请求
-      refreshQueue.forEach(callback => callback(access_token));
+      refreshQueue.forEach((callback) => callback(access_token));
       refreshQueue = [];
-      
-      console.log('token 刷新成功');
+
+      console.log("token 刷新成功");
+
       return access_token;
     } else {
-      console.error('刷新 token 失败:', response.message);
+      console.error("刷新 token 失败:", response.message);
+
       return null;
     }
   } catch (error) {
-    console.error('刷新 token 请求失败:', error);
+    console.error("刷新 token 请求失败:", error);
+
     return null;
   } finally {
     isRefreshing = false;
@@ -91,72 +100,81 @@ export async function refreshTokenAndWait(): Promise<string | null> {
 export async function fetchWithTokenRefresh<T = any>(
   url: string,
   options: RequestInit = {},
-  requireAuth: boolean = true
+  requireAuth: boolean = true,
 ): Promise<T> {
   const domain = getApiDomain();
-  const fullUrl = url.startsWith('http') ? url : `${domain}${url}`;
-  
+  const fullUrl = url.startsWith("http") ? url : `${domain}${url}`;
+
   // 确保请求头包含认证信息
-  const headers = createHeaders(options, requireAuth);
-  
+  const headers = createHeaders(options, requireAuth) as Record<string, string>;
+
   try {
     // 发送请求
     const response = await fetch(fullUrl, {
       ...options,
       headers,
     });
-    
+
     // 处理 401 未授权错误（token 过期）
     if (response.status === 401 && requireAuth) {
-      console.log('Token 已过期，尝试刷新...');
-      
+      console.log("Token 已过期，尝试刷新...");
+
       // 尝试刷新 token
       const newToken = await refreshTokenAndWait();
+
       if (newToken) {
         // 使用新 token 更新请求头
-        headers['Authorization'] = `Bearer ${newToken}`;
-        
+        headers["Authorization"] = `Bearer ${newToken}`;
+
         // 使用新 token 重试请求
         const retryResponse = await fetch(fullUrl, {
           ...options,
           headers,
         });
-        
+
         if (!retryResponse.ok) {
           throw new Error(`请求失败: ${retryResponse.status}`);
         }
-        
+
         // 检查响应内容类型和长度
-        const contentType = retryResponse.headers.get('content-type');
-        const contentLength = retryResponse.headers.get('content-length');
-        
+        const contentType = retryResponse.headers.get("content-type");
+        const contentLength = retryResponse.headers.get("content-length");
+
         // 如果是空响应或非JSON响应，则返回空对象
-        if (contentLength === '0' || !contentType || !contentType.includes('application/json')) {
+        if (
+          contentLength === "0" ||
+          !contentType ||
+          !contentType.includes("application/json")
+        ) {
           return {} as T;
         }
-        
+
         return await retryResponse.json();
       } else {
-        throw new Error('刷新 token 失败');
+        throw new Error("刷新 token 失败");
       }
     }
-    
+
     if (!response.ok) {
       throw new Error(`请求失败: ${response.status}`);
     }
-    
+
     // 检查响应内容类型和长度
-    const contentType = response.headers.get('content-type');
-    const contentLength = response.headers.get('content-length');
-    
+    const contentType = response.headers.get("content-type");
+    const contentLength = response.headers.get("content-length");
+
     // 如果是空响应或非JSON响应，则返回空对象
-    if (contentLength === '0' || !contentType || !contentType.includes('application/json')) {
+    if (
+      contentLength === "0" ||
+      !contentType ||
+      !contentType.includes("application/json")
+    ) {
       return {} as T;
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error('请求失败:', error);
+    console.error("请求失败:", error);
     throw error;
   }
 }
@@ -167,9 +185,12 @@ export async function fetchWithTokenRefresh<T = any>(
  * @param options 请求选项
  * @returns 响应数据
  */
-export async function get<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+export async function get<T = any>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> {
   return fetchWithTokenRefresh<T>(url, {
-    method: 'GET',
+    method: "GET",
     ...options,
   });
 }
@@ -181,9 +202,13 @@ export async function get<T = any>(url: string, options: RequestInit = {}): Prom
  * @param options 请求选项
  * @returns 响应数据
  */
-export async function post<T = any>(url: string, data: any, options: RequestInit = {}): Promise<T> {
+export async function post<T = any>(
+  url: string,
+  data: any,
+  options: RequestInit = {},
+): Promise<T> {
   return fetchWithTokenRefresh<T>(url, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(data),
     ...options,
   });
@@ -196,9 +221,13 @@ export async function post<T = any>(url: string, data: any, options: RequestInit
  * @param options 请求选项
  * @returns 响应数据
  */
-export async function put<T = any>(url: string, data: any, options: RequestInit = {}): Promise<T> {
+export async function put<T = any>(
+  url: string,
+  data: any,
+  options: RequestInit = {},
+): Promise<T> {
   return fetchWithTokenRefresh<T>(url, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(data),
     ...options,
   });
@@ -210,9 +239,12 @@ export async function put<T = any>(url: string, data: any, options: RequestInit 
  * @param options 请求选项
  * @returns 响应数据
  */
-export async function del<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+export async function del<T = any>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> {
   return fetchWithTokenRefresh<T>(url, {
-    method: 'DELETE',
+    method: "DELETE",
     ...options,
   });
 }
